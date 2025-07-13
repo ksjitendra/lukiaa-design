@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 export const isAndroid = Platform.OS == 'android';
 
 // Add helper function
-export const cmToInches = (cm: number): number => cm / 2.54;
+export const cmToInches = (cm: number): number => Math.round(cm / 2.54);
 
 export const inchesToCm = inches => {
   if (typeof inches !== 'number' || isNaN(inches) || inches < 0) {

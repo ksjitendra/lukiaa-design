@@ -1,5 +1,5 @@
 import {ScrollView, StyleSheet, View} from 'react-native';
-import React, {useCallback, useState, useMemo} from 'react';
+import React, {useCallback, useState, useMemo, useEffect} from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ScreenProps} from '../navigation/Stack';
 import MultiSelector from '../components/Selector/MultiSelector';
@@ -7,6 +7,7 @@ import {CustomImages} from '../assets/images';
 import CustomButton from '../common/CustumButton';
 import {useSelector} from 'react-redux';
 import {RootState} from '../redux/rootReducer';
+import {OutfitStruggleOptions} from '../constants/SelectionOptions';
 
 const occasions = [
   'College Daily Life',
@@ -55,6 +56,7 @@ const comfortLevel = [
 
 const OccasionScreen: React.FC<ScreenProps<'OccasionScreen'>> = ({
   navigation,
+  route,
 }) => {
   const {top, bottom} = useSafeAreaInsets();
 
@@ -66,6 +68,13 @@ const OccasionScreen: React.FC<ScreenProps<'OccasionScreen'>> = ({
   const [selectedComfort, setSelectedComfort] = useState('');
 
   const {token} = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    console.log('route.params : ', route.params);
+    if (route && route.params && route.params.selectedIds) {
+      setSelectedOccasion(route.params.selectedIds);
+    }
+  }, [route]);
 
   const isButtonEnabled = useMemo(() => {
     return (
@@ -115,7 +124,7 @@ const OccasionScreen: React.FC<ScreenProps<'OccasionScreen'>> = ({
         <View style={styles.container}>
           <MultiSelector
             question="What's the Occasion?"
-            options={occasions}
+            options={OutfitStruggleOptions.map(item => item.label)}
             value={selectedOccasion}
             onChange={setSelectedOccasion}
             questionIcon={CustomImages.target}
@@ -159,7 +168,7 @@ const OccasionScreen: React.FC<ScreenProps<'OccasionScreen'>> = ({
       </ScrollView>
 
       <CustomButton
-        title="Continue to Step 2"
+        title="Submit"
         onPress={handleNextNav}
         disabled={!isButtonEnabled}
         style={[styles.button, !isButtonEnabled && {opacity: 0.5}]}

@@ -12,3 +12,15 @@ export type OutfitDataType = {
     store: string;
   }[];
 };
+
+export type SkintoneOption = {
+  value: number;
+  color: string;
+  type: string;
+};
+
+export type SkinundertoneOption = {
+  id: string;
+  title: string;
+  subtitle: string;
+};

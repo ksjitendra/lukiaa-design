@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,18 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {colors} from '../constants/colors';
 import {Fonts} from '../assets/fonts/Customfont';
+import { SelectionElementType } from '@/types/selectionOptionsTypes';
 
 // Interface for props
 interface SelectableCardGridProps {
   data: {id: string; emoji: ImageSourcePropType; label: string}[];
+  selectedData?: SelectionElementType[];
   isMultiSelect?: boolean;
-  onSelectionChange?: (selected: string[] | string) => void;
+  onSelectionChange?: (selected: SelectionElementType[] | SelectionElementType) => void;
+  onSelectionChangeElement?: (selected: SelectionElementType[] | string) => void;
   columns?: number;
   title?: string;
+  isBodyShapeType?: boolean;
   description?: string;
   customTitleStyle?: TextStyle | TextStyle[];
   customSubTitleStyle?: TextStyle | TextStyle[];
@@ -27,46 +31,69 @@ interface SelectableCardGridProps {
 
 const SelectableCardGrid = ({
   data = [],
+  selectedData = [],
   isMultiSelect = true,
   onSelectionChange = () => {},
+  onSelectionChangeElement = () => {},
   columns = 3,
   title = '',
   description = '',
+  isBodyShapeType = false,
   customTitleStyle,
   customSubTitleStyle,
 }: SelectableCardGridProps) => {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<SelectionElementType[]>(selectedData);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const toggleSelect = (id: string) => {
-    let updated: string[] = [];
+  const toggleSelect = (element: SelectionElementType) => {
+    let updated: SelectionElementType[] = [];
+    let updatedElement: SelectionElementType[] = [];
 
     if (isMultiSelect) {
-      updated = selected.includes(id)
-        ? selected.filter(item => item !== id)
-        : [...selected, id];
+      updated = selected.includes(element)
+        ? selected.filter(item => item.id !== element.id)
+        : [...selected, element];
+      // updatedElement = selected.includes(element.id)
+      //   ? selected.filter(item => item !== element.id)
+      //   : [...selected, element];
+
+      // updatedElement = updated.map(item => {
+      //   return {
+      //     id: item,
+      //     label: data.find(dataItem => dataItem.id === item)?.label,
+      //     emoji: data.find(dataItem => dataItem.id === item)?.emoji,
+      //   };
+      // });
+        
       setSelected(updated);
       onSelectionChange(updated);
     } else {
-      updated = [id];
+      updated = [element];
+      updatedElement = [element];
       setSelected(updated);
-      onSelectionChange(id); // single selection returns string
+      onSelectionChange([element]); // single selection returns string
     }
+    onSelectionChangeElement(updatedElement);
   };
+
+  useEffect(() => {
+    setSelected(selectedData);
+  }, [selectedData]);
+
 
   const renderItem = ({
     item,
   }: {
-    item: {id: string; emoji: ImageSourcePropType; label: string};
+    item: SelectionElementType;
   }) => {
-    const isSelected = selected.includes(item.id);
+    const isSelected = selected.includes(item);
     const isHovered = hoveredId === item.id;
 
     return (
       <View style={styles.itemContainer}>
         <TouchableOpacity
           style={styles.touchable}
-          onPress={() => toggleSelect(item.id)}
+          onPress={() => toggleSelect(item)}
           onPressIn={() => setHoveredId(item.id)}
           onPressOut={() => setHoveredId(null)}
           activeOpacity={0.8}>
@@ -82,13 +109,27 @@ const SelectableCardGrid = ({
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 1}}
                 style={styles.gradient}>
-                <View style={styles.content}>
-                  <Image source={item.emoji} style={styles.emoji} />
+                <View
+                  style={
+                    isBodyShapeType ? styles.contentBodyShape : styles.content
+                  }>
+                  <Image
+                    source={item.emoji}
+                    style={
+                      isBodyShapeType ? styles.emojiBodyShape : styles.emoji
+                    }
+                  />
                 </View>
               </LinearGradient>
             ) : (
-              <View style={styles.content}>
-                <Image source={item.emoji} style={styles.emoji} />
+              <View
+                style={
+                  isBodyShapeType ? styles.contentBodyShape : styles.content
+                }>
+                <Image
+                  source={item.emoji}
+                  style={isBodyShapeType ? styles.emojiBodyShape : styles.emoji}
+                />
               </View>
             )}
           </View>
@@ -165,7 +206,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.trustBase,
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     // elevation: 2,
@@ -182,7 +223,7 @@ const styles = StyleSheet.create({
     // Removed backgroundColor: colors.white to prevent white flash
   },
   gradient: {
-    borderRadius: 16,
+    borderRadius: 8,
     flex: 1,
     width: '100%',
     height: '100%',
@@ -192,6 +233,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
+  },
+  contentBodyShape: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emojiBodyShape: {
+    width: 40,
+    resizeMode: 'cover',
+    height: '100%',
+    flex: 1,
+    backfaceVisibility: 'hidden',
   },
   emoji: {
     width: 40,

@@ -10,6 +10,7 @@ import {
   ListRenderItemInfo,
   Pressable,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {colors} from '../constants/colors';
@@ -76,17 +77,87 @@ const OutfitDetailScreen: React.FC<ScreenProps<'OutfitDetailScreen'>> = ({
   const imageModalRef = useRef<ModalRefType>(null);
   const [OutfitData, setOutfitData] = useState<any>();
   const [Refreshing, setRefreshing] = useState(false);
+
+  // Add these state variables at the top of your component
+  const [productImages, setProductImages] = useState<Record<string, string>>(
+    {},
+  );
+  const [isFirstImageLoaded, setIsFirstImageLoaded] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string | null>(null);
+  const [imageFetchError, setImageFetchError] = useState<string | null>(null);
+
+  // Replace the current fetchImage function with this
+  const fetchImagesSequentially = useCallback(async (items: any[]) => {
+    try {
+      // First fetch the first image
+      if (items[0]?.promptForAIImageGeneration) {
+        const firstImage = await getOutfitsImage(
+          items[0].promptForAIImageGeneration,
+        );
+        AppLoaderRef?.current?.stop();
+        console.log(firstImage, 'firstImage');
+        if (!firstImage) {
+          AppLoaderRef?.current?.stop();
+          throw new Error('Failed to load first outfit image');
+        }
+
+        // Update state with first image
+        setProductImages(prev => ({
+          ...prev,
+          [items[0].accessoriesAndFootwear]: firstImage,
+        }));
+        setIsFirstImageLoaded(true);
+
+        // Fetch remaining images one by one
+        for (let i = 1; i < items.length; i++) {
+          const item = items[i];
+          if (item?.promptForAIImageGeneration) {
+            try {
+              const imageUrl = await getOutfitsImage(
+                item.promptForAIImageGeneration,
+              );
+              console.log(imageUrl, 'imageUrl');
+              if (imageUrl) {
+                setProductImages(prev => ({
+                  ...prev,
+                  [item.accessoriesAndFootwear]: imageUrl,
+                }));
+              }
+            } catch (err) {
+              console.error(
+                `Error fetching image for item ${item.accessoriesAndFootwear}:`,
+                err,
+              );
+              // Continue with next image even if one fails
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in sequential image fetch:', error);
+      setImageFetchError('Failed to load outfit images');
+      CustomToaster({
+        type: ALERT_TYPE.DANGER,
+        message: 'Failed to load outfit images. Please try again.',
+      });
+    }
+  }, []);
+
   const params = route.params;
   console.log(params, 'params');
 
-  const handleImagePress = useCallback(() => {
-    imageModalRef.current?.open?.();
-  }, []);
+  const handleImagePress = useCallback(
+    (accessoriesAndFootwear: string) => {
+      setModalImageUrl(productImages[accessoriesAndFootwear]);
+      imageModalRef.current?.open?.();
+    },
+    [productImages],
+  );
 
   const {mutate: getOutFitData} = useMutation({
     mutationKey: ['outfitPrefrence'],
     mutationFn: async () => await getOutfits(params),
-    onMutate: () => AppLoaderRef?.current?.start(),
+    onMutate: () => AppLoaderRef?.current?.start(true),
     onError(error, variables, context) {
       console.log(error, 'eror');
 
@@ -94,11 +165,16 @@ const OutfitDetailScreen: React.FC<ScreenProps<'OutfitDetailScreen'>> = ({
         type: ALERT_TYPE.DANGER,
         message: error?.message ?? 'Something went wrong!',
       });
+      AppLoaderRef?.current?.stop();
     },
     onSuccess(data, variables, context) {
-      setOutfitData(data?.data);
+      console.log(data, 'success data');
+      setOutfitData(data?.outfits);
+      if (data?.outfits.length > 0) {
+        fetchImagesSequentially(data?.outfits);
+      }
     },
-    onSettled: () => AppLoaderRef?.current?.stop(),
+    // onSettled: () => AppLoaderRef?.current?.stop(),
   });
 
   // const fetchOutfitData = useCallback(async () => {
@@ -128,46 +204,53 @@ const OutfitDetailScreen: React.FC<ScreenProps<'OutfitDetailScreen'>> = ({
     console.log(itemData, 'itemData');
     let ImageUrl = '';
 
-    const {mutate} = useMutation({
-      mutationKey: ['imageApi'],
-      mutationFn: async () =>
-        await getOutfitsImage(itemData?.promptForAIImageGeneration),
-      onMutate: () => AppLoaderRef?.current?.start(),
-      onError(error, variables, context) {
-        console.log(error);
-        CustomToaster({
-          type: ALERT_TYPE.DANGER,
-          message: error?.message ?? 'Image is not working try again!',
-        });
-      },
-      onSuccess(data, variables, context) {
-        console.log(data, 'data');
-        ImageUrl = data?.data;
-      },
-      onSettled: () => AppLoaderRef?.current?.stop,
-    });
+    // const {mutate} = useMutation({
+    //   mutationKey: ['imageApi'],
+    //   mutationFn: async () =>
+    //     await getOutfitsImage(itemData?.promptForAIImageGeneration),
+    //   onMutate: () => AppLoaderRef?.current?.start(),
+    //   onError(error, variables, context) {
+    //     console.log(error);
+    //     CustomToaster({
+    //       type: ALERT_TYPE.DANGER,
+    //       message: error?.message ?? 'Image is not working try again!',
+    //     });
+    //   },
+    //   onSuccess(data, variables, context) {
+    //     console.log(data, 'data');
+    //     ImageUrl = data?.data;
+    //   },
+    //   onSettled: () => AppLoaderRef?.current?.stop,
+    // });
 
     return (
-      <>
-        <View style={styles.topContainer}>
-          <Text style={styles.title}>{itemData?.accessoriesAndFootwear}</Text>
+      <View style={styles.cardContainer}>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{itemData?.outfitTitle}</Text>
 
-          <ReadMoreText style={styles.desc}>
+          <ReadMoreText style={styles.cardDescription}>
             {itemData?.outfitSummary}
           </ReadMoreText>
 
-          {/* <View style={styles.scoreContainer}>
-                  <Image source={CustomImages.star} style={styles.star} />
-                  <Text style={styles.scoreText}>
-                    {DummyData.ai_score} • AI Match Score
-                  </Text>
-                </View> */}
-
-          <Pressable style={styles.imageContainer} onPress={handleImagePress}>
-            <Image
-              source={{uri: ImageUrl ?? DummyData?.image}}
-              style={styles.image}
-            />
+          <Pressable
+            style={styles.cardImageContainer}
+            onPress={() => handleImagePress(itemData?.accessoriesAndFootwear)}>
+            {productImages[itemData?.accessoriesAndFootwear] ? (
+              <Image
+                // source={{uri: productImages[itemData?.id] ?? DummyData?.image}}
+                source={{
+                  uri: productImages[itemData?.accessoriesAndFootwear]
+                    ? productImages[itemData?.accessoriesAndFootwear]
+                    : DummyData?.image,
+                }}
+                style={styles.image}
+              />
+            ) : (
+              <ActivityIndicator
+                size="large"
+                color={colors.gradientstartColor}
+              />
+            )}
 
             <View style={styles.viewFullContainer}>
               <Text style={styles.heading}>Tap to view Full</Text>
@@ -191,12 +274,17 @@ const OutfitDetailScreen: React.FC<ScreenProps<'OutfitDetailScreen'>> = ({
           onPress={() => {}}
           btnStyle={styles.btn}
         />
-        <ImageViewModal ref={imageModalRef} imageUrl={DummyData.image} />
-      </>
+        <ImageViewModal
+          ref={imageModalRef}
+          imageUrl={modalImageUrl ? modalImageUrl : DummyData.image}
+        />
+      </View>
     );
   };
 
   console.log(OutfitData, 'outputData');
+
+  const isLoading = AppLoaderRef?.current?.isLoading();
 
   return (
     <SafeAreaView style={styles.scrollView}>
@@ -212,23 +300,23 @@ const OutfitDetailScreen: React.FC<ScreenProps<'OutfitDetailScreen'>> = ({
         refreshControl={
           <RefreshControl
             refreshing={Refreshing}
-            onRefresh={getOutFitData}
+            onRefresh={() => getOutFitData()}
             colors={[colors.gradientstartColor, colors.gradientendColor]}
             tintColor={colors.gradientstartColor}
           />
         }>
         <>
-          <LinearGradient
-            colors={[colors.gradientstartColor, colors.gradientendColor]}
-            style={styles.headingContainer}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}>
-            <Text style={styles.heading}>{DummyData.heading}</Text>
-          </LinearGradient>
-          {OutfitData
-            ? OutfitData?.outfits?.map((item, index) =>
-                renderMajorItem(item, index),
-              )
+          {/* {!isLoading && (
+            <LinearGradient
+              colors={[colors.gradientstartColor, colors.gradientendColor]}
+              style={styles.headingContainer}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}>
+              <Text style={styles.heading}>{DummyData.heading}</Text>
+            </LinearGradient>
+          )} */}
+          {isFirstImageLoaded && OutfitData
+            ? OutfitData?.map((item, index) => renderMajorItem(item, index))
             : null}
         </>
       </ScrollView>
@@ -239,6 +327,38 @@ const OutfitDetailScreen: React.FC<ScreenProps<'OutfitDetailScreen'>> = ({
 const styles = StyleSheet.create({
   mainCont: {flexGrow: 1, backgroundColor: colors.white},
   scrollView: {flex: 1, backgroundColor: colors.white},
+  // Card Styles
+  cardContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  cardContent: {
+    padding: 16,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.black,
+    marginBottom: 8,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  cardImageContainer: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f5f5f5',
+  },
   topContainer: {padding: 16},
   title: {
     fontSize: 24,

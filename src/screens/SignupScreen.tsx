@@ -60,8 +60,8 @@ const SignupScreen: React.FC<ScreenProps<'Signup'>> = ({navigation}) => {
         message: 'Signup Successfully!!!',
         type: ALERT_TYPE.SUCCESS,
       });
-      navigation.navigate('AccountVerify',{
-        userId:data?.data?.userId
+      navigation.navigate('AccountVerify', {
+        userId: data?.data?.userId,
       });
     },
     onError: error => {
@@ -96,14 +96,11 @@ const SignupScreen: React.FC<ScreenProps<'Signup'>> = ({navigation}) => {
           keyboardShouldPersistTaps="handled">
           <View style={styles.innerContent}>
             <View style={styles.header}>
-              <Text style={title}>Registered In Lukiaa</Text>
-              <View style={styles.logoBox}>
-                <Image source={CustomImages.logo} style={styles.logo} />
-              </View>
-              <Text style={styles.subtitle}>AI Stylish</Text>
-              <Text style={styles.subtext}>
-                Fast forward fashion, powered by AI
-              </Text>
+              <Text style={title}>Registeration</Text>
+              <Image
+                source={CustomImages.transparent_logo}
+                style={styles.logo}
+              />
             </View>
             <CardWrapper>
               <View style={styles.container}>
@@ -281,8 +278,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   logo: {
-    width: 70,
-    height: 70,
+    width: 250,
+    height: 250,
   },
   contentStyle: {
     flexGrow: 1,
@@ -298,8 +295,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingTop: 10,
-    paddingBottom: 10,
+    // paddingTop: 10,
+    // paddingBottom: 10,
+    paddingVertical: 40,
   },
   button: {
     marginTop: 16,

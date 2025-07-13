@@ -2,11 +2,6 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {StyleSheet} from 'react-native';
 import {colors} from '../constants/colors';
-import EngagingScreen from '../screens/EngagingScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import CustomHeader from '../components/header/CustomHeader';
-import ProfileScreenTwo from '../screens/ProfileScreenTwo';
-import ProgressIndicator from '../components/header/CustomHeader';
 import BottomTabNavigator from './BottomStack';
 import {useSelector} from 'react-redux';
 import {RootState} from '../redux/rootReducer';
@@ -14,14 +9,15 @@ import OccasionScreen from '../screens/OccasionScreen';
 import OutfitDetailScreen from '../screens/OutfitDetailScreen';
 import StackHeader from '../components/nav/StackHeader';
 import {CustomImages} from '../assets/images';
+import EngagingScreen from '../screens/EngagingScreen';
 
 export type MainStackParams = {
   ProfileScreen: undefined;
   ProfileScreenTwo: {
-    height: number;
+    height: number | string;
     gender: string;
     age: string;
-    bodyShape: string[];
+    bodyShape: string;
     bodyType: string[];
   };
   EngagingScreen: undefined;
@@ -34,16 +30,19 @@ const Stack = createNativeStackNavigator<MainStackParams>();
 
 export const MainStack = () => {
   const {isProfileSetup} = useSelector((state: RootState) => state.userProfile);
+  const {isEngagementShown} = useSelector(
+    (state: RootState) => state.userProfile,
+  );
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={isProfileSetup ? 'BottomTab' : 'EngagingScreen'}
+        initialRouteName={!isEngagementShown ? 'EngagingScreen' : 'BottomTab'}
         screenOptions={() => ({
           contentStyle: styles.commonContentStyle,
           headerShown: false,
           // statusBarStyle:colors.white
         })}>
-        <Stack.Screen name="EngagingScreen" component={EngagingScreen} />
+        {/* <Stack.Screen name="EngagingScreen" component={EngagingScreen} />
         <Stack.Screen
           name="ProfileScreen"
           component={ProfileScreen}
@@ -63,6 +62,12 @@ export const MainStack = () => {
               // headerShown: true,
             }
           }
+        /> */}
+        <Stack.Screen name="EngagingScreen" component={EngagingScreen} />
+        <Stack.Screen
+          name="BottomTab"
+          component={BottomTabNavigator}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="OccasionScreen"
@@ -77,11 +82,6 @@ export const MainStack = () => {
               />
             ),
           }}
-        />
-        <Stack.Screen
-          name="BottomTab"
-          component={BottomTabNavigator}
-          options={{headerShown: false}}
         />
         <Stack.Screen
           name="OutfitDetailScreen"

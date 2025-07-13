@@ -1,38 +1,24 @@
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {ScrollView, StatusBar, StyleSheet, View} from 'react-native';
 import React, {useCallback, useState, useEffect} from 'react';
-import CustomSelect from '../common/CustomSelect';
 import SelectableCardGrid from '../common/SelectableCardGrid';
 import HeightSlider from '../components/slider/HeightSlider';
 import CustomButton from '../common/CustumButton'; // Note: Typo in import (CustumButton -> CustomButton)
-import {CustomImages} from '../assets/images';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ScreenProps} from '../navigation/Stack';
 import {cmToInches, inchesToCm} from '../utils/helperFunctions';
 import ProgressIndicator from '../components/header/CustomHeader';
-
-const bodyShapeOptions = [
-  {id: 'triangle', label: 'Triangle', emoji: CustomImages.triangle},
-  {id: 'rectangle', label: 'Rectagle', emoji: CustomImages.square},
-  {
-    id: 'invertedTriangle',
-    label: 'Inverted Triangle',
-    emoji: CustomImages.downTriangle,
-  },
-  {id: 'oval', label: 'Oval', emoji: CustomImages.ellipse},
-  {id: 'trapzoid', label: 'Trapezoid', emoji: CustomImages.pentagone},
-];
-
-const bodySizeOptions = [
-  {id: 'slim', label: 'Slim', emoji: CustomImages.slimBody},
-  {id: 'average', label: 'Average', emoji: CustomImages.averageBody},
-  {
-    id: 'heavy',
-    label: 'HeavySet',
-    emoji: CustomImages.heavyBody,
-  },
-  {id: 'athletic', label: 'Athelete', emoji: CustomImages.atheleteBody},
-  {id: 'muscular', label: 'Muscular', emoji: CustomImages.muscularBody},
-];
+import MultiSelector from '../components/Selector/MultiSelector';
+import {
+  ageTypes,
+  bodyShapeOptions,
+  femaleBodyShapeOptions,
+  femaleBodySizeOptions,
+  genderTypes,
+  maleBodyShapeOptions,
+  maleBodySizeOptions,
+} from '../constants/SelectionOptions';
+import {SelectionElementType} from '../types/selectionOptionsTypes';
+import {useFocusEffect} from '@react-navigation/native';
 
 const ProfileScreen: React.FC<ScreenProps<'ProfileScreen'>> = ({
   navigation,
@@ -40,12 +26,26 @@ const ProfileScreen: React.FC<ScreenProps<'ProfileScreen'>> = ({
   const [height, setHeight] = useState<number>(70);
   const [gender, setGender] = useState<string>('');
   const [age, setAge] = useState<string>('');
-  const [bodyShape, setBodyShape] = useState<string[]>([]);
+  const [bodyShape, setBodyShape] = useState<SelectionElementType[]>([]);
+  const [bodyShapeElement, setBodyShapeElement] = useState<
+    SelectionElementType[]
+  >([]);
   const [bodyType, setBodyType] = useState<string[]>([]);
+  const [bodyTypeElement, setBodyTypeElement] = useState<
+    SelectionElementType[]
+  >([]);
   const [isButtonEnabled, setIsButtonEnabled] = useState<boolean>(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setTranslucent(true);
+      StatusBar.setBackgroundColor('transparent');
+    }, []),
+  );
 
   // Validate if all required fields are filled
   useEffect(() => {
+    console.log(bodyShape, bodyType, gender, age, height, 'all values');
     const isValid =
       height !== null &&
       gender !== '' &&
@@ -56,11 +56,12 @@ const ProfileScreen: React.FC<ScreenProps<'ProfileScreen'>> = ({
   }, [height, gender, age, bodyShape, bodyType]);
 
   const handleSelectionChange =
-    (type: 'bodyShape' | 'bodyType') => (selectedIds: string[]) => {
+    (type: 'bodyShape' | 'bodyType') =>
+    (selectedIds: SelectionElementType[]) => {
       if (type === 'bodyShape') {
         setBodyShape(selectedIds);
       } else {
-        setBodyType(selectedIds);
+        setBodyType(selectedIds.map(item => item.id));
       }
       console.log(`Selected ${type}:`, selectedIds);
     };
@@ -76,12 +77,13 @@ const ProfileScreen: React.FC<ScreenProps<'ProfileScreen'>> = ({
       });
 
       let heightIncm = inchesToCm(height);
+      console.log(heightIncm, 'heightIncm');
 
       navigation.navigate('ProfileScreenTwo', {
         height: heightIncm,
         gender,
         age,
-        bodyShape,
+        bodyShape: bodyShape[0].id,
         bodyType,
       });
       // Add navigation logic here
@@ -91,7 +93,6 @@ const ProfileScreen: React.FC<ScreenProps<'ProfileScreen'>> = ({
   const {top, bottom} = useSafeAreaInsets();
 
   console.log(isButtonEnabled);
-  
 
   return (
     <View style={{flex: 1}}>
@@ -108,41 +109,61 @@ const ProfileScreen: React.FC<ScreenProps<'ProfileScreen'>> = ({
 
           {/* Gender and Age Select */}
           <View style={styles.section}>
-            <CustomSelect
+            <MultiSelector
               label="Gender"
-              data={['male', 'female', 'other']}
-              placeholder="Select your gender"
-              onSelect={value => setGender(value)}
+              options={genderTypes}
+              value={gender}
+              onChange={value => {
+                if (gender !== value) {
+                  setBodyShape([]);
+                  setBodyType([]);
+                }
+                setGender(value);
+              }}
             />
-            <CustomSelect
+            <MultiSelector
               label="Age"
-              data={['18-24', '25-34', '35-44', '45-54', '55+']}
-              placeholder="Select your age"
-              onSelect={value => setAge(value)}
+              options={ageTypes}
+              value={age}
+              onChange={setAge}
             />
           </View>
 
           {/* Body Shape */}
-          <View style={[styles.section, {marginTop: 10}]}>
-            <SelectableCardGrid
-              title="Body Shape"
-              description="Choose the shape that best describes your body type"
-              data={bodyShapeOptions}
-              isMultiSelect={false}
-              onSelectionChange={handleSelectionChange('bodyShape')}
-            />
-          </View>
+          {gender && (
+            <View style={[styles.section, {marginTop: 10}]}>
+              <SelectableCardGrid
+                title="Body Shape"
+                description="Choose the shape that best describes your body type"
+                isBodyShapeType={true}
+                data={
+                  gender === 'male'
+                    ? maleBodyShapeOptions
+                    : femaleBodyShapeOptions
+                }
+                selectedData={bodyShape}
+                isMultiSelect={false}
+                onSelectionChange={handleSelectionChange('bodyShape')}
+                // onSelectionChangeElement={handleSelectionChangeElement('bodyShape')}
+              />
+            </View>
+          )}
 
           {/* Body Size */}
-          <View style={styles.section}>
-            <SelectableCardGrid
-              title="Body Size"
-              description="Select your overall build and physique"
-              data={bodySizeOptions}
-              isMultiSelect={false}
-              onSelectionChange={handleSelectionChange('bodyType')}
-            />
-          </View>
+          {gender && (
+            <View style={styles.section}>
+              <MultiSelector
+                label="Body Size"
+                options={
+                  gender === 'male'
+                    ? maleBodySizeOptions.map(item => item.label)
+                    : femaleBodySizeOptions.map(item => item.label)
+                }
+                value={bodyType}
+                onChange={setBodyType}
+              />
+            </View>
+          )}
         </ScrollView>
         <CustomButton
           title="Continue to Step 2"

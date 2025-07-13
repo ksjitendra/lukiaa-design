@@ -1,34 +1,35 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Platform} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { colors } from '../../constants/colors';
+import {colors} from '../../constants/colors';
 
 // You can replace this with a local SVG or Lottie for the sparkle icon if desired
-const Sparkles = () => (
-  <Text style={styles.sparkle}>✨</Text>
-);
+const Sparkles = () => <Text style={styles.sparkle}>✨</Text>;
 
 interface PerfectOutfitCardProps {
   onPress?: () => void;
 }
 
-const PerfectOutfitCard: React.FC<PerfectOutfitCardProps> = ({ onPress }) => {
+const PerfectOutfitCard: React.FC<PerfectOutfitCardProps> = ({onPress}) => {
   return (
     <View style={styles.cardContainer}>
       <View style={styles.row}>
         <Sparkles />
         <Text style={styles.heading}>
-          Find the <Text style={styles.bold}>Perfect Outfit</Text>{"\n"}
+          Find the <Text style={styles.bold}>Perfect Outfit</Text>
+          {'\n'}
           for Your Next Occasion
         </Text>
       </View>
-      <TouchableOpacity activeOpacity={0.85} style={styles.buttonWrapper} onPress={onPress}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.buttonWrapper}
+        onPress={onPress}>
         <LinearGradient
           colors={['#7D5FFF', '#FC5C7D']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.buttonGradient}
-        >
+          start={{x: 0, y: 0.5}}
+          end={{x: 1, y: 0.5}}
+          style={styles.buttonGradient}>
           <Text style={styles.buttonText}>Let's Style It Right</Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -41,10 +42,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
+    paddingVertical: 30,
     marginVertical: 16,
     shadowColor: colors.gradientstartColor,
     shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowRadius: 16,
     elevation: 8,
     alignItems: 'center',
@@ -58,7 +60,7 @@ const styles = StyleSheet.create({
         // For iOS shadow
         shadowColor: colors.gradientstartColor,
         shadowOpacity: 0.08,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowRadius: 16,
       },
     }),
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
     width: '100%',
     shadowColor: '#FC5C7D',
     shadowOpacity: 0.12,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowRadius: 12,
     elevation: 6,
   },

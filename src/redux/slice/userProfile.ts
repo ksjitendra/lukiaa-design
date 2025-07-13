@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  isProfileSetup: false
+  isProfileSetup: false,
+  isEngagementShown: false,
 };
 
 const userProfileSlice = createSlice({
@@ -14,12 +15,18 @@ const userProfileSlice = createSlice({
     // You can add more reducers if needed, e.g.:
     resetProfileSetup: (state) => {
       state.isProfileSetup = false;
-    }
+    },
+    EngagementShown: (state) => {
+      state.isEngagementShown = true;
+    },
+    resetEngagementShown: (state) => {
+      state.isEngagementShown = false;
+    },
   },
 });
 
 // Export actions
-export const { ProfileSetupCompleted, resetProfileSetup } = userProfileSlice.actions;
+export const { ProfileSetupCompleted, resetProfileSetup, EngagementShown, resetEngagementShown } = userProfileSlice.actions;
 
 // Export reducer
 export default userProfileSlice.reducer;

@@ -1,7 +1,7 @@
 import {NavigationProp, RouteProp} from '@react-navigation/native';
 import {AuthParams} from './AuthStack';
 import {MainStackParams} from './MainStack';
-import { BottomTabParams } from './BottomStack';
+import {BottomTabParams} from './BottomStack';
 
 export type ScreenParams = AuthParams & MainStackParams & BottomTabParams; // Combine the params
 

@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   Image,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import {useForm, Controller} from 'react-hook-form';
 import CustomInput from '../common/CustomInput';
@@ -29,6 +30,10 @@ import {useToast} from 'react-native-toast-notifications';
 import {ScreenProps} from '../navigation/Stack';
 import {useDispatch} from 'react-redux';
 import {login} from '../redux/slice/authSlice';
+import {
+  ProfileSetupCompleted,
+  EngagementShown,
+} from '../redux/slice/userProfile';
 
 // Define type to match LoginApi
 type LoginFormData = {
@@ -53,6 +58,11 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
   const [show, setShow] = useState(true);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    StatusBar.setBackgroundColor(colors.accent);
+    StatusBar.setBarStyle('dark-content');
+  }, []);
+
   // ✅ Login mutation
   const toast = useToast();
 
@@ -67,7 +77,13 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
         type: ALERT_TYPE.SUCCESS,
         message: 'Login Successfully!!!',
       });
+      dispatch(EngagementShown());
       dispatch(login({username: data?.username, token: data?.data?.token}));
+      if (data?.data?.isProfileComplete) {
+        dispatch(ProfileSetupCompleted());
+      } else {
+        navigation.navigate('ProfileScreen');
+      }
     },
     onError: error => {
       console.error('Login Error:', error);
@@ -83,6 +99,7 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
 
   const onSubmit = (data: LoginFormData) => {
     console.log('Login payload:', data);
+    // navigation.navigate('Engaging');
     mutate(data); // Call the mutation with form data
   };
 
@@ -90,22 +107,17 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{flex: 1}}>
+      <StatusBar backgroundColor={colors.accent} barStyle="dark-content" />
       <ScrollView
         style={[styles.scrollView, {marginTop: top, marginBottom: bottom}]}
-        contentContainerStyle={{flexGrow: 1}}
+        // contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator
         keyboardShouldPersistTaps="handled">
         <View style={styles.innerContent}>
           <View style={styles.header}>
-            <View style={styles.logoBox}>
-              <Image source={CustomImages.logo} style={styles.logo} />
-            </View>
-            <Text style={styles.subtitle}>AI Stylish</Text>
-            <Text style={styles.subtext}>
-              Fast forward fastion, powered by AI
-            </Text>
+            <Image source={CustomImages.transparent_logo} style={styles.logo} />
           </View>
-          <CardWrapper>
+          <CardWrapper style={{paddingVertical: 20}}>
             <View style={styles.container}>
               <View style={styles.inputContainer}>
                 <View>
@@ -127,9 +139,9 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
                     }) => (
                       <AnimatedTextInput
                         placeholder="Email/Phone"
-                        placeholderTextStyle={[
-                          isTouched && {color: colors.accent},
-                        ]}
+                        // placeholderTextStyle={[
+                        //   isTouched && {color: colors.accent},
+                        // ]}
                         defaultValue={value}
                         onChangeText={text => onChange(text.toLowerCase())}
                         onFocusPress={() => identifierRef?.current?.focus()}
@@ -138,6 +150,12 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
                             ? colors.errorAlert
                             : colors.inputBorder
                         }
+                        placeholderTextStyle={{
+                          backgroundColor: colors.boxBackground,
+                          color: errors.identifier
+                            ? colors.errorAlert
+                            : colors.textSecondary,
+                        }}
                         right={
                           <TouchableOpacity style={styles.secureButton}>
                             <Image
@@ -147,7 +165,10 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
                             />
                           </TouchableOpacity>
                         }
-                        backgroundColor={colors.white}
+                        containerStyle={{
+                          backgroundColor: colors.boxBackground,
+                        }}
+                        backgroundColor={colors.boxBackground}
                         placeholderTextColor={colors.textSecondary}
                         ref={identifierRef}
                       />
@@ -186,8 +207,21 @@ const LoginScreen: React.FC<ScreenProps<'Login'>> = ({navigation}) => {
                             ? colors.errorAlert
                             : colors.inputBorder
                         }
-                        backgroundColor={colors.white}
-                        placeholderTextColor={colors.textSecondary}
+                        containerStyle={{
+                          backgroundColor: colors.boxBackground,
+                        }}
+                        placeholderTextStyle={{
+                          backgroundColor: colors.boxBackground,
+                          color: errors.password
+                            ? colors.errorAlert
+                            : colors.textSecondary,
+                        }}
+                        backgroundColor={colors.boxBackground}
+                        placeholderTextColor={
+                          errors.password
+                            ? colors.errorAlert
+                            : colors.textSecondary
+                        }
                         ref={passwordRef}
                         right={
                           <TouchableOpacity
@@ -256,8 +290,8 @@ const styles = StyleSheet.create({
     height: 22,
   },
   innerContent: {
-    justifyContent: 'center',
-    marginTop: 70,
+    // justifyContent: 'center',
+    // marginTop: 70,
   },
   subtext: {
     fontFamily: Fonts.inter400,
@@ -272,7 +306,7 @@ const styles = StyleSheet.create({
   header: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 16,
+    // paddingBottom: 16,
   },
   logoBox: {
     justifyContent: 'center',
@@ -280,8 +314,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   logo: {
-    width: 70,
-    height: 70,
+    width: 250,
+    height: 250,
   },
   scrollView: {
     flex: 1,
@@ -300,7 +334,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 12,
+    // paddingBottom: 12,
+    paddingVertical: 40,
   },
   signupContainer: {
     marginTop: 10,

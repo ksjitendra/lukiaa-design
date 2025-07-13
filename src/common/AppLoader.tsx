@@ -12,11 +12,13 @@ import {
   ViewStyle,
 } from 'react-native';
 import {colors} from '../constants/colors'; // Adjust path if needed
+import LukiaLoadingScreen from '../screens/LukiaLoadingScreen';
 
 // Define the type of functions exposed via ref
 export interface LoaderType {
-  start: () => void;
+  start: (isOutfitSelectionAnimation?: boolean) => void;
   stop: () => void;
+  isLoading: () => boolean;
 }
 
 interface CustomLoaderProps {
@@ -37,15 +39,21 @@ const AppLoader = forwardRef<LoaderType, CustomLoaderProps>(
     ref,
   ) => {
     const [visible, setVisible] = useState<boolean>(false);
+    const [isOutfitSelectionAnimation, setIsOutfitSelectionAnimation] =
+      useState<boolean>(false);
 
     // Expose start/stop functions via ref
     useImperativeHandle(
       ref,
       () => ({
-        start: () => setVisible(true),
+        start: (isOutfitSelectionAnimation: boolean = false) => {
+          setIsOutfitSelectionAnimation(isOutfitSelectionAnimation);
+          setVisible(true);
+        },
         stop: () => setVisible(false),
+        isLoading: () => visible,
       }),
-      [],
+      [visible],
     );
 
     return (
@@ -60,7 +68,11 @@ const AppLoader = forwardRef<LoaderType, CustomLoaderProps>(
             {backgroundColor: backgroundColor},
             overlayStyle,
           ]}>
-          <ActivityIndicator size="large" color={loaderColor} />
+          {isOutfitSelectionAnimation ? (
+            <LukiaLoadingScreen />
+          ) : (
+            <ActivityIndicator size="large" color={loaderColor} />
+          )}
         </View>
       </Modal>
     );

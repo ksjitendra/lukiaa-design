@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {ScrollView, StatusBar, StyleSheet, View} from 'react-native';
 import React, {useCallback, useState} from 'react';
 import PerfectOutfitCard from '../../components/card/PerfectOutfitCard';
 import BreezyLinenCard from '../../components/card/BreezyLinenCard';
@@ -8,31 +8,15 @@ import {CustomImages} from '../../assets/images';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Fonts} from '../../assets/fonts/Customfont';
 import DealsCard from '../../components/card/productList';
-
-// Define the outfit struggle options with unique IDs, labels, and corresponding emojis
-const OutfitStruggleOptions = [
-  {
-    id: 'collegeDailyLife',
-    label: 'College Daily Life',
-    emoji: CustomImages.college,
-  },
-  {
-    id: 'dayTodayOffice',
-    label: 'Day-to-Day Office',
-    emoji: CustomImages.office,
-  },
-  {id: 'nightOut', label: 'Night Out', emoji: CustomImages.moon},
-  {id: 'brunchOuting', label: 'Brunch Outing', emoji: CustomImages.brunch},
-  {id: 'wedding', label: 'Wedding', emoji: CustomImages.wedding},
-  {id: 'parties', label: 'Parties', emoji: CustomImages.party},
-  {id: 'date', label: 'Date', emoji: CustomImages.date},
-  {id: 'gym', label: 'Gym', emoji: CustomImages.gym},
-  {id: 'birthday', label: 'Birthday', emoji: CustomImages.birthday},
-];
+import {OutfitStruggleOptions} from '../../constants/SelectionOptions';
+import {SelectionElementType} from '../../types/selectionOptionsTypes';
+import {useFocusEffect} from '@react-navigation/native';
 
 const HomeTab: React.FC<ScreenProps<'Home'>> = ({navigation}) => {
   // State to track selected outfit struggle options
-  const [mostlyStrugglesWith, setMostlyStrugglesWith] = useState<string[]>([]);
+  const [mostlyStrugglesWith, setMostlyStrugglesWith] = useState<
+    SelectionElementType[]
+  >([]);
 
   // Handle navigation to the next screen
   const handleNextNav = useCallback(() => {
@@ -42,12 +26,24 @@ const HomeTab: React.FC<ScreenProps<'Home'>> = ({navigation}) => {
 
   // Handle selection changes in the SelectableCardGrid
   const handleSelectionChange = useCallback(
-    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
-      (selectedIds: string[]) => {
+    (setter: React.Dispatch<React.SetStateAction<SelectionElementType[]>>) =>
+      (selectedIds: SelectionElementType[]) => {
         setter(selectedIds);
-        console.log(`Selected:`, selectedIds);
+        const id = OutfitStruggleOptions.filter(
+          item => item.id === selectedIds[0].id,
+        );
+        console.log(`Selected:`, selectedIds, id);
+        navigation.navigate('OccasionScreen', {selectedIds: id[0].label});
       },
     [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle('light-content');
+      StatusBar.setTranslucent(true);
+      StatusBar.setBackgroundColor('transparent');
+    }, []),
   );
 
   // Get safe area insets for proper padding
@@ -55,6 +51,7 @@ const HomeTab: React.FC<ScreenProps<'Home'>> = ({navigation}) => {
 
   return (
     <View style={styles.root}>
+      <StatusBar translucent backgroundColor={'transparent'} />
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -71,6 +68,7 @@ const HomeTab: React.FC<ScreenProps<'Home'>> = ({navigation}) => {
           <View style={styles.section}>
             <SelectableCardGrid
               title="Occasions"
+              selectedData={mostlyStrugglesWith}
               customTitleStyle={styles.selectTitle}
               data={OutfitStruggleOptions}
               isMultiSelect={false}
@@ -106,7 +104,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingTop: 16,
   },
   scrollContent: {
@@ -129,6 +127,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   section: {
-    marginBottom: 16, // Consistent spacing between sections
+    marginBottom: 8, // Consistent spacing between sections
   },
 });

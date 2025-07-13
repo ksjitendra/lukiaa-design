@@ -14,6 +14,18 @@ import {ALERT_TYPE} from 'react-native-alert-notification';
 import ProgressIndicator from '../components/header/CustomHeader';
 import {useDispatch} from 'react-redux';
 import {ProfileSetupCompleted} from '../redux/slice/userProfile';
+import {SkintoneOption, SkinundertoneOption} from '../types/outfitDataType';
+import SkintoneSelector from '../components/Selector/SkintoneSelector';
+import SkinundertoneSelector from '../components/Selector/SkinundertoneSelector';
+import MultiSelector from '../components/Selector/MultiSelector';
+import {
+  BrandsDealInOptions,
+  OutfitStruggleOptions,
+  professionTypes,
+  SkintoneOptions,
+  SkinundertoneOptions,
+} from '../constants/SelectionOptions';
+import {SelectionElementType} from '../types/selectionOptionsTypes';
 
 // Define types for better type safety
 type SkinTone =
@@ -30,16 +42,7 @@ type SkinUndertone =
   | 'Warm (Yellow, Golden, Peach)'
   | 'Neutral (Mix of Cool & Warm)'
   | 'Not Sure';
-type Profession =
-  | 'Student'
-  | 'Corporate/Office Worker'
-  | 'Creative Professional'
-  | 'Healthcare'
-  | 'Education'
-  | 'Entrepreneur'
-  | 'Retail/Service'
-  | 'Freelancer'
-  | 'Other';
+type Profession = 'Student' | 'Professional';
 
 interface RouteParams {
   // Define expected params here
@@ -47,41 +50,19 @@ interface RouteParams {
   // Add other expected params
 }
 
-const BrandsDealInOptions = [
-  {id: 'affordable', label: 'Affordable', emoji: CustomImages.money},
-  {id: 'premium', label: 'Premium', emoji: CustomImages.premium},
-  {id: 'luxury', label: 'Luxury', emoji: CustomImages.luxury},
-];
-
-const OutfitStruggleOptions = [
-  {
-    id: 'collegeDailyLife',
-    label: 'College Daily Life',
-    emoji: CustomImages.college,
-  },
-  {
-    id: 'dayTodayOffice',
-    label: 'Day-to-Day Office',
-    emoji: CustomImages.office,
-  },
-  {id: 'nightOut', label: 'Night Out', emoji: CustomImages.moon},
-  {id: 'brunchOuting', label: 'Brunch Outing', emoji: CustomImages.brunch}, // Fixed typo
-  {id: 'wedding', label: 'Wedding', emoji: CustomImages.wedding},
-  {id: 'parties', label: 'Parties', emoji: CustomImages.party},
-  {id: 'date', label: 'Date', emoji: CustomImages.date},
-  {id: 'gym', label: 'Gym', emoji: CustomImages.gym},
-  {id: 'birthday', label: 'Birthday', emoji: CustomImages.birthday},
-];
-
 const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
   route,
   navigation,
 }) => {
-  const [skinTone, setSkinTone] = useState<SkinTone | ''>('');
-  const [skinUndertone, setSkinUndertone] = useState<SkinUndertone | ''>('');
+  const [skinTone, setSkinTone] = useState<SkintoneOption | ''>('');
+  const [skinUndertone, setSkinUndertone] = useState<SkinundertoneOption | ''>(
+    '',
+  );
   const [profession, setProfession] = useState<Profession | ''>('');
-  const [brandsDealIn, setBrandsDealIn] = useState<string[]>([]);
-  const [mostlyStrugglesWith, setMostlyStrugglesWith] = useState<string[]>([]); // Fixed typo
+  const [brandsDealIn, setBrandsDealIn] = useState<SelectionElementType[]>([]);
+  const [mostlyStrugglesWith, setMostlyStrugglesWith] = useState<
+    SelectionElementType[]
+  >([]); // Fixed typo
   const [isButtonEnabled, setIsButtonEnabled] = useState<boolean>(false);
   const details = route.params;
   const dispatch = useDispatch();
@@ -100,8 +81,8 @@ const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
   }, [skinTone, skinUndertone, profession, brandsDealIn, mostlyStrugglesWith]);
 
   const handleSelectionChange = useCallback(
-    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
-      (selectedIds: string[]) => {
+    (setter: React.Dispatch<React.SetStateAction<SelectionElementType[]>>) =>
+      (selectedIds: SelectionElementType[]) => {
         setter(selectedIds);
         console.log(`Selected:`, selectedIds);
       },
@@ -120,7 +101,7 @@ const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
         type: ALERT_TYPE.SUCCESS,
       });
       dispatch(ProfileSetupCompleted());
-      navigation.navigate('BottomTab'); // Navigate to AccountVerify on success
+      // navigation.navigate('BottomTab'); // Navigate to AccountVerify on success
     },
     onError: (error: Error) => {
       console.error('Profile Completion Error:', error);
@@ -139,13 +120,14 @@ const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
     if (isButtonEnabled) {
       const data = {
         ...details,
-        skinTone,
-        skinUndertone,
+        skinTone: skinTone.type,
+        skinUndertone: skinUndertone.id,
         profession,
-        brandsDealIn,
-        mostlyStrugglesWith, // Fixed typo
+        brandsDealIn: brandsDealIn[0].id,
+        mostlyStuggelsWith: mostlyStrugglesWith.map(item => item.id), // Fixed typo
       };
       mutate(data);
+      // navigation.navigate('BottomTab');
     }
   }, [
     isButtonEnabled,
@@ -169,47 +151,23 @@ const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
           showsVerticalScrollIndicator={false}>
           {/* Skin Tone, Skin Undertone, and Profession Select */}
           <View style={styles.section}>
-            <CustomSelect
-              label="Skin Tone"
-              data={[
-                'Very Fair',
-                'Fair',
-                'Light',
-                'Medium',
-                'Olive',
-                'Tan',
-                'Dark',
-                'Deep',
-              ]}
-              placeholder="Select your skin tone"
-              onSelect={value => setSkinTone(value as SkinTone)}
+            <SkintoneSelector
+              options={SkintoneOptions}
+              selected={skinTone}
+              onChange={value => setSkinTone(value)}
+              style={{marginBottom: 16}}
             />
-            <CustomSelect
-              label="Skin Undertone"
-              data={[
-                'Cool (Pink, Red, Blue)',
-                'Warm (Yellow, Golden, Peach)',
-                'Neutral (Mix of Cool & Warm)',
-                'Not Sure',
-              ]}
-              placeholder="Select your skin undertone"
-              onSelect={value => setSkinUndertone(value as SkinUndertone)}
+            <SkinundertoneSelector
+              options={SkinundertoneOptions}
+              selected={skinUndertone}
+              onChange={value => setSkinUndertone(value)}
+              style={{marginBottom: 16}}
             />
-            <CustomSelect
+            <MultiSelector
               label="Profession"
-              data={[
-                'Student',
-                'Corporate/Office Worker',
-                'Creative Professional',
-                'Healthcare',
-                'Education',
-                'Entrepreneur',
-                'Retail/Service',
-                'Freelancer',
-                'Other',
-              ]}
-              placeholder="Select your profession"
-              onSelect={value => setProfession(value as Profession)}
+              options={professionTypes}
+              value={profession}
+              onChange={value => setProfession(value)}
             />
           </View>
 
@@ -219,6 +177,7 @@ const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
               title="Shopping Preference"
               description="Which price range do you usually shop in?"
               data={BrandsDealInOptions}
+              selectedData={brandsDealIn}
               isMultiSelect={false}
               onSelectionChange={handleSelectionChange(setBrandsDealIn) as any}
             />
@@ -230,6 +189,7 @@ const ProfileScreenTwo: React.FC<ScreenProps<'ProfileScreenTwo'>> = ({
               title="Outfit Struggles"
               description="Which outfits do you struggle with the most? (Select multiple)"
               data={OutfitStruggleOptions}
+              selectedData={mostlyStrugglesWith}
               isMultiSelect={true}
               onSelectionChange={
                 handleSelectionChange(setMostlyStrugglesWith) as any

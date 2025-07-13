@@ -94,7 +94,7 @@ const AccountVerifyScreen: React.FC<AccountVerifyScreenProps> = ({
         type: ALERT_TYPE.SUCCESS,
       });
       dispatch(login({username: data?.username, token: data?.data?.token}));
-      // navigation.navigate('Home'); // Navigate to Stuarts Creek to Home screen after successful verification
+      navigation.navigate('ProfileScreen'); // Navigate to profile screen for verification
     },
     onError: (error: Error) => {
       console.error('OTP Verification Error:', error);

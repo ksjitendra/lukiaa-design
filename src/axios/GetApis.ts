@@ -26,7 +26,9 @@ export const getOutfits = async (
   data: OutfitRequestPayload,
 ): Promise<OutfitItem[]> => {
   try {
-    const res = await AxiosInstance.post('/ai-engine/search/outfits/', data);
+    console.log(data, 'data of outfit list');
+    const res = await AxiosInstance.post('ai-engine/search/outfits/', data);
+    console.log('outfit api response : ', res);
     return res.data.data || [];
   } catch (error) {
     console.error('getOutfits error:', error);
@@ -34,12 +36,23 @@ export const getOutfits = async (
   }
 };
 
-export const getOutfitsImage = async (url: string) => {
+export const getOutfitsImage = async (prompt: string) => {
   try {
-    const res = await AxiosInstance.post('ai-engine/generate/image/', url);
+    const res = await AxiosInstance.post('ai-engine/generate/image/pollin', {prompt});
     return res.data.data || [];
   } catch (error) {
     console.error('get generate error:', error);
+    throw error;
+  }
+};
+
+export const getProfileData = async () => {
+  try {
+    const res = await AxiosInstance.get('users/get/profile');
+    console.log('profile api response : ', res);
+    return res.data.data || [];
+  } catch (error) {
+    console.error('getProfileData error:', error);
     throw error;
   }
 };

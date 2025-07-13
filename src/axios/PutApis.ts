@@ -17,7 +17,9 @@ export const ProfileApi = async (payload: ProfileApiType) => {
   console.log(payload, 'payload');
 
   try {
+    console.log('profile api called : ',payload);
     const response = await AxiosInstance.put('users/update/profile', payload); // ✅ Pass payload here
+    console.log(response.data, 'response of update profile');
     return response.data;
   } catch (error) {
     throw error;

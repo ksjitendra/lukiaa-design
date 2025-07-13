@@ -11,11 +11,12 @@ import CustomToastWrapper from '../components/toaster/ToastProviderWrapper';
 export const AppLoaderRef = React.createRef<LoaderType>();
 const RootScreen: React.FC = () => {
   const {isAuthenticated} = useSelector((state: RootState) => state.auth);
+  const {isProfileSetup} = useSelector((state: RootState) => state.userProfile);
   return (
     <CustomToastWrapper>
       <View style={styles.container}>
         <StatusBar backgroundColor={colors.accent} barStyle="dark-content" />
-        {isAuthenticated ? <MainStack /> : <AuthStack />}
+        {isAuthenticated && isProfileSetup ? <MainStack /> : <AuthStack />}
         <AppLoader ref={AppLoaderRef} />
       </View>
     </CustomToastWrapper>

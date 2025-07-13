@@ -1,9 +1,10 @@
-import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {useCallback} from 'react';
+import {View, Text, StyleSheet, StatusBar} from 'react-native';
 import {colors} from '../../constants/colors';
 import {Fonts} from '../../assets/fonts/Customfont';
 import LinearGradient from 'react-native-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
 
 interface ProgressIndicatorProps {
   isPageOneComplete: boolean;
@@ -15,12 +16,20 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   isPageTwoComplete,
 }) => {
   const {top} = useSafeAreaInsets();
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle('light-content');
+      StatusBar.setTranslucent(true);
+      StatusBar.setBackgroundColor('transparent');
+    }, []),
+  );
   return (
     <LinearGradient
       colors={[colors.gradientstartColor, colors.gradientendColor]} // Gradient from purple to pink
       start={{x: 0, y: 0}} // Gradient starts from the left
       end={{x: 1, y: 0}} // Gradient ends on the right
-      style={styles.gradient}>
+      style={[styles.gradient, {paddingTop: StatusBar.currentHeight}]}>
+      <StatusBar translucent backgroundColor={'transparent'} />
       <View style={[styles.container, {paddingTop: top}]}>
         {/* Page 1 */}
         <View style={styles.stepContainer}>

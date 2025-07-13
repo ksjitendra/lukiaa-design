@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -64,6 +64,10 @@ const HeightSlider: React.FC<HeightSliderProps> = ({
     setHeightInInches(value);
     onHeightChange(value); // Callback to pass the selected height to parent component
   };
+
+  useEffect(() => {
+    handleValueChange(defaultHeight);
+  }, [defaultHeight]);
 
   return (
     <View style={[styles.section, containerStyle]}>

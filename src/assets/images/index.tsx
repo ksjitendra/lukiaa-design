@@ -49,4 +49,23 @@ export const CustomImages = {
   bag: require('./bag.png'),
   heart: require('./heart.png'),
   close: require('./close.png'),
+  transparent_logo: require('./transparent_logo.png'),
+
+  femaleShapeApple: require('./female/Apple.jpg'),
+  femaleShapeBrick: require('./female/Brick.jpg'),
+  femaleShapeColumn: require('./female/Column.jpg'),
+  femaleShapeFullHourGlass: require('./female/Full_Hourglass.jpg'),
+  femaleShapeHourGlass: require('./female/Hourglass.jpg'),
+  femaleShapeInvertedTriangle: require('./female/Inverted_triangle.jpg'),
+  femaleShapePear: require('./female/Pear.jpg'),
+  femaleShapePetite: require('./female/Petite.jpg'),
+
+  maleShapeCircle: require('./male/Circle.jpg'),
+  maleShapeColumn: require('./male/Column.jpg'),
+  maleShapeInvertedTriangle: require('./male/Inverted_Triangle.jpg'),
+  maleShapeOval: require('./male/Oval.jpg'),
+  maleShapeRectangle: require('./male/Rectangle.jpg'),
+  maleShapeSquare: require('./male/Square.jpg'),
+  maleShapeTrapezium: require('./male/Trapezium.jpg'),
+  maleShapeTriangle: require('./male/Triangle.jpg'),
 };

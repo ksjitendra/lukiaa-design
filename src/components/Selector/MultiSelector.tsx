@@ -22,6 +22,7 @@ type MultiSelectorProps = {
   optionTextStyle?: TextStyle;
   question?: string;
   questionIcon?: React.ReactNode;
+  label?: string;
 };
 
 const MultiSelector: React.FC<MultiSelectorProps> = ({
@@ -30,6 +31,7 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
   onChange,
   style,
   optionStyle,
+  label,
   optionTextStyle,
   question,
   questionIcon,
@@ -37,8 +39,8 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
   const [pressedIdx, setPressedIdx] = useState<number | null>(null);
 
   return (
-    <View style={[styles.mainContainer,style]}>
-      {(question || questionIcon) && (
+    <View style={[styles.mainContainer, style]}>
+      {(question || questionIcon || label) && (
         <View style={styles.header}>
           {questionIcon && (
             <Image
@@ -48,6 +50,7 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
             />
           )}
           {question && <Text style={styles.question}>{question}</Text>}
+          {label && <Text style={styles.label}>{label}</Text>}
         </View>
       )}
       <View style={styles.container}>
@@ -107,7 +110,7 @@ const MultiSelector: React.FC<MultiSelectorProps> = ({
 
 const styles = StyleSheet.create({
   mainContainer: {
-    marginVertical: 16
+    marginVertical: 16,
   },
   header: {
     flexDirection: 'row',
@@ -125,6 +128,11 @@ const styles = StyleSheet.create({
   question: {
     fontFamily: Fonts.DMSans700,
     fontSize: 18,
+    color: colors.textPrimary,
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: Fonts.inter500,
     color: colors.textPrimary,
   },
   container: {

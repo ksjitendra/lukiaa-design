@@ -29,7 +29,7 @@ const BottomTab = createBottomTabNavigator<BottomTabParams>();
 // Custom Gradient Tab Bar with Safe Area and Custom Height
 const GradientTabBar: React.FC<BottomTabBarProps> = props => {
   const insets = useSafeAreaInsets();
-  const TAB_BAR_HEIGHT = 100;
+  const TAB_BAR_HEIGHT = 80;
 
   return (
     <View
@@ -56,6 +56,17 @@ const GradientTabBar: React.FC<BottomTabBarProps> = props => {
     </View>
   );
 };
+
+const TabBarGradient = () => {
+  return (
+    <LinearGradient
+      colors={[colors.gradientstartColor, colors.gradientendColor]}
+      start={{x: 0, y: 0}}
+      end={{x: 1, y: 0}}
+      style={{flex: 1}}
+    />
+  );
+};
 // #73c3f9
 
 const BottomTabNavigator = ({navigation}) => {
@@ -68,12 +79,14 @@ const BottomTabNavigator = ({navigation}) => {
       screenOptions={{
         tabBarActiveTintColor: 'white',
         tabBarInactiveTintColor: 'black',
+        // tabBarBackground: () => <TabBarGradient />,
         tabBarStyle: {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
           paddingTop: 10,
         },
+        // tabBarShowLabel: true,
         // Ensure header is visible and respects safe area
         headerStyle: {
           backgroundColor: colors.gradientstartColor, // Match gradient or set a solid color
@@ -111,11 +124,18 @@ const BottomTabNavigator = ({navigation}) => {
               }}
             />
           ),
+          // tabBarStyle: {paddingVertical: 12},
         }}
       />
       <BottomTab.Screen
         name="Outfit"
         component={OutfitTab}
+        listeners={{
+          tabPress: e => {
+            e.preventDefault();
+            navigation.navigate('OccasionScreen');
+          },
+        }}
         options={{
           header: () => (
             <DoubleIconHeader
@@ -160,6 +180,11 @@ const BottomTabNavigator = ({navigation}) => {
       <BottomTab.Screen
         name="Chat"
         component={ChatTab}
+        listeners={{
+          tabPress: e => {
+            e.preventDefault();
+          },
+        }}
         options={{
           header: () => (
             <DoubleIconHeader leftIcon={CustomImages.square} title="Chat Tab" />
